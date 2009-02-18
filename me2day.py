@@ -81,4 +81,9 @@ class Me2day:
         data = Json.parse(data)
         return OpenStruct.parse(data)
 
+    @staticmethod
+    def convert(s):
+        """ '\\ud55c\\uae00' => u'\ud55c\uae00' """
+        return eval("u'%s'" % s)
+
 

@@ -1,4 +1,5 @@
 #!/usr/bin/python
+# coding: utf-8
 
 import unittest
 from me2day import Me2day
@@ -74,10 +75,9 @@ class Me2dayApiTestCase(unittest.TestCase):
         assert tag in map(lambda x: x.name, posts[0].tags)
         
     def test_encode_korean_correctly(self):
-        result = """
+        result = "\\ud55c\\uae00"
+        assert Me2day.convert(result) == u"\ud55c\uae00"
 
-        """
-        pass
 
 #class GetPageBySpringnoteApiTestCase(unittest.TestCase):
 #    def test_get_springnote_page_by_page_id(self):

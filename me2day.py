@@ -1,5 +1,11 @@
 #!/usr/bin/python
 import urllib2
+from datetime import datetime
+
+ME2DAY_DATETIME_FORMAT="%Y-%m-%dT%X+0900"
+
+def time_iso8601(time):
+    return time.strftime("%Y-%m-%dT%H:%M:%S")
 
 class OpenStruct:
     def __init__(self, params=None):
@@ -47,6 +53,9 @@ class OpenStruct:
                         if nestable(v) else v           \
                         for v in value[:]               \
                     ]
+                # type conversion
+                if key == "pubDate":
+                    value = datetime.strptime(value, ME2DAY_DATETIME_FORMAT)
                 d[key] = value
             return d
         else:
@@ -59,13 +68,25 @@ class Json:
         data = data.replace('null', 'None')     \
                     .replace('false', 'False')  \
                     .replace('true', 'True')
-        return eval(data)
+        e_data = eval(data)
+        if "pubDate" in e_data:
+            e_data["pubDate"] = datetime.strptime(e_data["pubDate"], ME2DAY_DATETIME_FORMAT)
+        return e_data
 
 
 class Me2day:
     @staticmethod
     def posts(username, **params):
         url = 'http://me2day.net/api/get_posts/%s' % username
+        for key in ['since', 'to']:
+            if key in params:
+                value = params[key]
+                if isinstance(value, datetime):
+                    value = time_iso8601(value)
+                params[key] = value
+        if 'since' in params:
+            params['from'] = params.pop('since')
+          
         posts = Me2day.fetch_resource(url, params)
         return posts
 
@@ -74,7 +95,7 @@ class Me2day:
         url += '.json'
         if param:
             query = '&'.join(['='.join([k,v]) for k,v in param.items()])
-            url   = '%s?%s' % (url, query)
+            url  += '?%s' % query
         url = url.replace(' ', '%20')
         # fetch from me2day
         data = urllib2.urlopen(url).read()

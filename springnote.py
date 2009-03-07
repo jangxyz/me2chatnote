@@ -31,11 +31,6 @@ class SpringnoteResource:
             data = {self.__class__.__name__.lower(): data}
             data = json.dumps(data)
 
-        ## establish connection
-        #oauth_request = oauth.OAuthRequest.from_consumer_and_token(self.consumer_token, token=self.access_token, http_method=method, http_url=url, parameters=params)
-        #oauth_request.sign_request(self.signature_method, self.consumer_token, self.access_token)
-        #conn = httplib.HTTPConnection(self.BASEURL)
-        #conn.request(method, url, body=data, headers=headers)
         conn = Springnote.springnote_request(method, url, params, headers, data, sign_token=self.access_token, secure=False)
 
         # get response
@@ -60,6 +55,9 @@ class SpringnoteResource:
         """ 각 resource마다 필요한 후처리를 할 수 있다 """
         # set direct accessor
         [setattr(self, key, value) for key, value in resource_dict.iteritems()]
+        # unicode
+        for key, value in resource_dict.iteritems():
+            setattr(self, key, eval('u"""%s"""' % value))
         # alias id
         if "identifier" in resource_dict:
             setattr(self, "id", resource_dict["identifier"])
@@ -88,7 +86,7 @@ class Page(SpringnoteResource):
         """ tags를 배열로 변환한다 """
         SpringnoteResource.process_resource(self, resource_dict)
         if "tags" in resource_dict:
-            self.tags = self.tags.split(',')
+            self.tags = filter(None, self.tags.split(','))
 
     def _writable_resources(self):
         writable_resource = {}
@@ -130,7 +128,7 @@ class Springnote:
             self.access_token = oauth.OAuthToken(*access_token)
 
     @staticmethod
-    def springnote_request(method, url, params={}, headers={}, body=None, sign_token=None, secure=True):
+    def springnote_request(method, url, params={}, headers={}, body=None, sign_token=None, secure=True, verbose=False):
         """ Springnote에서 사용하는 request를 생성합니다. 
         일반적인 springnote resource 요청 뿐 아니라 
         oauth 인증을 위해 request token과 access token을 요청할 때도 사용합니다.
@@ -141,6 +139,9 @@ class Springnote:
 
         # merge oauth header with user defined
         headers.update(oauth_request.to_header())
+
+        #if verbose:
+        print oauth_request.http_method, oauth_request.http_url, body, headers
 
         # create http(s) connection and request
         if secure:
@@ -266,6 +267,7 @@ if __name__ == '__main__':
 
     #page = springnote_client.get_page(2044710, {'domain':'jangxyz'})
     page = springnote_client.page('jangxyz', 563954)
+    page = springnote_client.page('jangxyz', 2423440)
     print page.resource
     print page.source
     # as a consumer, access some protected resources from service provider

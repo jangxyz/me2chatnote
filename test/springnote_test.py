@@ -157,6 +157,17 @@ class PageTestHelper:
         springnote.httplib.OK = 200
 
     @staticmethod
+    def build_page_and_return_with_connection(access_token, page_id=3, title='testing springnote api', source='test source', tags=['test','springnote']):
+        response_data = PageTestHelper.response_data(page_id, title, source, tags)
+        response_mock = PageTestHelper.response_mock(response_data)
+        connection_mock = PageTestHelper.http_connection_mock(response_mock)
+        httplib_mock = PageTestHelper.set_httplib_mock(http_connection=connection_mock)
+        
+        page = springnote.Page(access_token)
+        page.build_from_response(response_data)
+        return (page, connection_mock)
+
+    @staticmethod
     def should_behave_like_json_body_for_writable_resource(cls, json_body):
         body = springnote.json.loads(json_body)
         cls.assertTrue('page' in body)
@@ -205,24 +216,15 @@ class SetPageBySpringnoteApiTestCase(unittest.TestCase):
         self.access_token = client.access_token
 
     def test_saving_page_sends_proper_request(self):
-        # mock
         page_id = 3
-        response_data = PageTestHelper.response_data(page_id=page_id, source='something old')
-        response_mock = PageTestHelper.response_mock(response_data)
-        http_connection_mock = PageTestHelper.http_connection_mock(response_mock)
-        PageTestHelper.set_httplib_mock(http_connection = http_connection_mock)
+        page, http_connection_mock = PageTestHelper.build_page_and_return_with_connection(self.access_token, page_id=page_id, source='something old')
 
-        # precondition
-        page = springnote.Page(self.access_token)
-        page.build_from_response(response_data)
         new_source = "something new"
         self.assertNotEqual(page.source, new_source)
-
-        #
         page.source = new_source
         page.save()
 
-        # postcondition
+        #
         request = http_connection_mock.mockGetNamedCalls('request')[0]
         self.assertEqual(request.getParam(0), 'PUT')
         self.assertEqual(request.getParam(1), "http://api.springnote.com/pages/%d.json" % page_id)
@@ -232,20 +234,14 @@ class SetPageBySpringnoteApiTestCase(unittest.TestCase):
         OAuthTestCase.should_behave_like_oauth_header(self, request.getParam('headers'))
 
     def test_saving_unicode_encodes_to_proper_encoding(self):
-        http_connection_mock = PageTestHelper.http_connection_mock()
-        PageTestHelper.set_httplib_mock(http_connection = http_connection_mock)
+        page, http_connection_mock = PageTestHelper.build_page_and_return_with_connection(self.access_token)
 
-        # precondition
-        page = springnote.Page(self.access_token)
-        page.build_from_response(PageTestHelper.response_data())
         source = u"한글"
         encoded_source = source.encode('utf-8') # '\xed\x95\x9c\xea\xb8\x80'
-
-        #
         page.source = source
         page.save()
 
-        # postcondition
+        #
         request = http_connection_mock.mockGetNamedCalls('request')[0]
         self.assertTrue(encoded_source in request.getParam('body'))
 

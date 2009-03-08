@@ -5,7 +5,9 @@ import unittest
 from lib.mock import Mock
 import springnote
 
-
+class SpringnoteRequestTestCase(unittest.TestCase):
+    def test_korean_must_be_preserved(self):
+        pass
 
 class OAuthTestCase(unittest.TestCase):
     def set_https_connection_response_for_request_token(self, response_mock=None):
@@ -170,13 +172,13 @@ class GetPageBySpringnoteApiTestCase(unittest.TestCase):
         response_data = PageTestHelper.response_data(self.page_id)
         PageTestHelper.set_httplib_mock(response_data)
 
-        access_token = ('3X', 'ld')
-        self.client = springnote.Springnote(access_token)
+        self.access_token = ('ACCESS', 'TOKEN')
+        self.client = springnote.Springnote(self.access_token)
 
     def test_fetching_page_by_id_should_have_correct_id(self):
         page = self.client.page(note=self.note, id=self.page_id)
         self.assertEqual(page.id, self.page_id)
-        self.assertTrue(isinstance(page.source, str))
+        self.assertTrue(isinstance(page.source, unicode))
 
     def test_page_should_have_id_as_alias_to_identifier(self):
         page = self.client.page(note=self.note, id=self.page_id)
@@ -187,6 +189,13 @@ class GetPageBySpringnoteApiTestCase(unittest.TestCase):
         self.assertTrue(isinstance(page.tags, list), "tags must be a list, but got '%s'" % page.tags)
         self.assertEqual(page.tags, ["test", "springnote"])
 
+    def test_should_convert_to_proper_unicode(self):
+        response_data = PageTestHelper.response_data(source='\\ud55c\\uae00')
+        response_mock = PageTestHelper.response_mock(response_data)
+
+        page = springnote.Page(self.access_token)
+        page.build_from_response(response_data)
+        self.assertEqual(page.source, u'\ud55c\uae00')
 
 
 class SetPageBySpringnoteApiTestCase(unittest.TestCase):
@@ -221,6 +230,24 @@ class SetPageBySpringnoteApiTestCase(unittest.TestCase):
         PageTestHelper.should_behave_like_json_body_for_writable_resource(self, request.getParam('body'))
         # request header behaves like oauth header - it actually is
         OAuthTestCase.should_behave_like_oauth_header(self, request.getParam('headers'))
+
+    def test_saving_unicode_encodes_to_proper_encoding(self):
+        http_connection_mock = PageTestHelper.http_connection_mock()
+        PageTestHelper.set_httplib_mock(http_connection = http_connection_mock)
+
+        # precondition
+        page = springnote.Page(self.access_token)
+        page.build_from_response(PageTestHelper.response_data())
+        source = u"한글"
+        encoded_source = source.encode('utf-8') # '\xed\x95\x9c\xea\xb8\x80'
+
+        #
+        page.source = source
+        page.save()
+
+        # postcondition
+        request = http_connection_mock.mockGetNamedCalls('request')[0]
+        self.assertTrue(encoded_source in request.getParam('body'))
 
 
 class ExceptionTestCase(unittest.TestCase):

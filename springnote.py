@@ -17,8 +17,7 @@ class SpringnoteResource:
     def __init__(self, access_token, parent=None):
         self.access_token = access_token # 모든 request 시에 필요한 access token
         self.resource = None             # 스프링노트의 리소스를 담는 dictionary 
-        self.parent   = parent           # 부모 resource
-        self.xml      = ''               # request의 결과로 가져온 xml
+        self.raw      = ''               # request의 결과로 가져온 raw data
         return
 
     def request(self, path, method="GET", params={}, data=None):
@@ -29,7 +28,8 @@ class SpringnoteResource:
         headers = {'Content-Type': 'application/json'}
         if data: # set body if any
             data = {self.__class__.__name__.lower(): data}
-            data = json.dumps(data)
+            data = json.dumps(data, ensure_ascii=False)
+            data = data.encode('utf-8')
 
         conn = Springnote.springnote_request(method, url, params, headers, data, sign_token=self.access_token, secure=False)
 
@@ -57,7 +57,8 @@ class SpringnoteResource:
         [setattr(self, key, value) for key, value in resource_dict.iteritems()]
         # unicode
         for key, value in resource_dict.iteritems():
-            setattr(self, key, eval('u"""%s"""' % value))
+            if isinstance(value, str):
+                setattr(self, key, eval('u"""%s"""' % value))
         # alias id
         if "identifier" in resource_dict:
             setattr(self, "id", resource_dict["identifier"])
@@ -93,6 +94,8 @@ class Page(SpringnoteResource):
         for key, value in self.resource.iteritems():
             if key in self.writable_attributes:
                 writable_resource[key] = getattr(self, key)
+        if 'tags' in self.resource:
+            writable_resource['tags'] = ' '.join(getattr(self, 'tags'))
         return writable_resource
 
     def save(self):
@@ -100,18 +103,12 @@ class Page(SpringnoteResource):
         path = "/pages/%d.json" % self.id
         method = "PUT"
 
-        resource = {'page': self.resource}
-        resource = {'page': self._writable_resources()}
-        data = json.dumps(resource)
+        #resource = {'page': self.resource}
+        #resource = {'page': self._writable_resources()}
+        #data = json.dumps(resource)
 
         self.request(path, method, data=self._writable_resources())
         return self
-
-    def destroy(self):
-        """ /pages/:page_id.xml에 접근하여 page를 삭제합니다. """
-        path = "/pages/%d.xml" % page_id
-        method = "DELETE"
-        self.request(path, method)
 
 
 class Springnote:
@@ -141,7 +138,7 @@ class Springnote:
         headers.update(oauth_request.to_header())
 
         #if verbose:
-        print oauth_request.http_method, oauth_request.http_url, body, headers
+        #print oauth_request.http_method, oauth_request.http_url, body, headers
 
         # create http(s) connection and request
         if secure:

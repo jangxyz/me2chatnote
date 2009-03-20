@@ -14,24 +14,35 @@
 import unittest, sys, os, re
 
 def find_all_test_files():
-        t_py_re = re.compile('^t(est)?_.*\.py$')
-        is_test = lambda filename: t_py_re.match(filename)
-        drop_dot_py = lambda filename: filename[:-3]
-        return [drop_dot_py(module) for module in filter(is_test, os.listdir(os.curdir))]
+    #test_file_pattern = re.compile('^t(est)?_.*\.py$')
+    test_file_pattern = re.compile('.*_test\.py$')
+    is_test = lambda filename: test_file_pattern.match(filename)
+    drop_dot_py = lambda filename: filename[:-3]
+    join_module = lambda *names: '.'.join(names)
+    #return [drop_dot_py(module) for module in filter(is_test, os.listdir(os.curdir))]
+    modules = []
+    for root, dirs, files in os.walk(os.curdir):
+        root_name = os.path.split(root)[-1]
+        for test_file in filter(is_test, files):
+            modules.append(join_module(root_name, drop_dot_py(test_file)))
+        #modules += ['.'.join([root_name, drop_dot_py(test_file)]) for test_file in filter(is_test, files)]
+    return modules
 
 
 def suite():
-        sys.path.append(os.curdir)
+    sys.path.append(os.curdir)
 
-        modules_to_test = find_all_test_files()
-        print 'Testing', ', '.join(modules_to_test)
+    modules_to_test = find_all_test_files()
+    print 'Testing', ', '.join(modules_to_test)
 
-        alltests = unittest.TestSuite()
-        for module in map(__import__, modules_to_test):
-                alltests.addTest(unittest.findTestCases(module))
+    loader = unittest.TestLoader()
+    alltests = unittest.TestSuite()
+    #for module in map(__import__, modules_to_test):
+    #    alltests.addTest(unittest.findTestCases(module))
+    alltests.addTests(loader.loadTestsFromNames(modules_to_test))
 
-        return alltests
+    return alltests
 
 if __name__ == '__main__':
-        unittest.main(defaultTest='suite')
+    unittest.main(defaultTest='suite')
 

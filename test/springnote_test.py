@@ -258,7 +258,7 @@ if __name__ == '__main__':
     try:
         import testoob
         testoob.main()
-    except:
+    except ImportError:
         loader = unittest.defaultTestLoader
         loader.testMethodPrefix = 'test'
         unittest.main(testLoader = loader)

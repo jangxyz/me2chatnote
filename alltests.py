@@ -11,7 +11,7 @@
 # Place this file somewhere where it can be run, such as ${HOME}/bin/alltests.py
 # 
 
-import testoob, unittest, sys, os, re
+import unittest, sys, os, re
 
 def find_all_test_files(filename_arg='*'):
     """ finds files that end with '_test.py', recursively """
@@ -55,16 +55,10 @@ def suite():
     return alltests
 
 if __name__ == '__main__':
-    if len(sys.argv) == 4:   # testfile testsuite.testcase
-        print sys.argv
-    elif len(sys.argv) == 2: # testfile
-        print sys.argv
-
-    test_suite = suite()
-    print test_suite.countTestCases()
-    test_suite.run(unittest.TestResult())
-    print unittest.TestResult()
-    #unittest.main(defaultTest='suite')
-    #testoob.main(defaultTest='suite')
+    try:
+        import testoob
+        testoob.main(defaultTest='suite')
+    except ImportError:
+        unittest.main(defaultTest='suite')
 
 

@@ -178,8 +178,8 @@ class Me2dayApiAcceptanceTestCase(unittest.TestCase):
 if __name__ == '__main__':
     try:
         import testoob
-        testoob.main()
-    except:
         unittest.main()
+    except ImportError:
+        testoob.main()
 
 

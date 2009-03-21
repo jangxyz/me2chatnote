@@ -11,7 +11,7 @@
 # Place this file somewhere where it can be run, such as ${HOME}/bin/alltests.py
 # 
 
-import unittest, sys, os, re
+import testoob, unittest, sys, os, re
 
 def find_all_test_files():
     #test_file_pattern = re.compile('^t(est)?_.*\.py$')
@@ -44,5 +44,6 @@ def suite():
     return alltests
 
 if __name__ == '__main__':
-    unittest.main(defaultTest='suite')
+    #unittest.main(defaultTest='suite')
+    testoob.main(defaultTest='suite')
 

@@ -1,6 +1,8 @@
 #!/usr/bin/python
 # coding: utf-8
 
+import test_env
+
 import unittest
 from lib.mock import Mock
 import springnote
@@ -253,8 +255,12 @@ class ExceptionTestCase(unittest.TestCase):
 
 if __name__ == '__main__':
     #unittest.main()
-    loader = unittest.defaultTestLoader
-    loader.testMethodPrefix = 'test'
-    unittest.main(testLoader = loader)
+    try:
+        import testoob
+        testoob.main()
+    except:
+        loader = unittest.defaultTestLoader
+        loader.testMethodPrefix = 'test'
+        unittest.main(testLoader = loader)
 
 

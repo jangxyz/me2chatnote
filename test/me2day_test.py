@@ -1,5 +1,7 @@
 #!/usr/bin/python
 # coding: utf-8
+import test_env
+
 import unittest
 import me2day
 from lib.mock import Mock
@@ -174,5 +176,10 @@ class Me2dayApiAcceptanceTestCase(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    unittest.main()
+    try:
+        import testoob
+        testoob.main()
+    except:
+        unittest.main()
+
 

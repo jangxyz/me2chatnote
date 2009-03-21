@@ -73,18 +73,18 @@ class Me2dayApiTestCase(unittest.TestCase):
         def assert_url(url):
             assert url == get_post_url
             return Mock({'read': self.basic_response})
-        me2day.urllib2.urlopen = assert_url
+        me2day.urllib.urlopen = assert_url
 
         posts = me2day.Me2day.posts(username)
 
     def test_posts_with_tags_calls_proper_url(self):
         username = 'jangxyz'
         tag = 'woc'
-        get_post_url = "http://me2day.net/api/get_posts/%s.json?tag=%s" % (username, tag)
+        get_post_url = "http://me2day.net/api/get_posts/%s.json?scope=tag[%s]" % (username, tag)
         def assert_url(url):
             assert url == get_post_url
             return Mock({'read': self.basic_response})
-        me2day.urllib2.urlopen = assert_url
+        me2day.urllib.urlopen = assert_url
 
         posts = me2day.Me2day.posts(username, tag='woc')
 
@@ -95,7 +95,7 @@ class Me2dayApiTestCase(unittest.TestCase):
         def assert_url(url):
             assert url == get_post_url
             return Mock({'read': self.basic_response})
-        me2day.urllib2.urlopen = assert_url
+        me2day.urllib.urlopen = assert_url
 
         posts = me2day.Me2day.posts(username, since=since)
 
@@ -105,11 +105,11 @@ class Me2dayApiTestCase(unittest.TestCase):
         convert = me2day.time_iso8601
         from_to_query = "from=%s&to=%s" % (convert(since), convert(until))
         def assert_url(url):
-            queries = me2day.urllib2.splitquery(url)[-1].split('&')
+            queries = me2day.urllib.splitquery(url)[-1].split('&')
             queries.sort()
             assert '&'.join(queries) == from_to_query
             return Mock({'read': self.basic_response})
-        me2day.urllib2.urlopen = assert_url
+        me2day.urllib.urlopen = assert_url
 
         posts = me2day.Me2day.posts('somename', since=since, to=until)
 
@@ -133,7 +133,7 @@ class ParseJsonTestCase(unittest.TestCase):
         }]"""
 
     def set_response(self, response='[]'):
-        me2day.urllib2 = Mock({
+        me2day.urllib = Mock({
             "urlopen": Mock({"read": response})
         })
 

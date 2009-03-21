@@ -13,16 +13,20 @@
 
 import testoob, unittest, sys, os, re
 
-def find_all_test_files():
+def find_all_test_files(filename_arg='*'):
+    """ finds files that end with '_test.py', recursively """
     #test_file_pattern = re.compile('^t(est)?_.*\.py$')
     test_file_pattern = re.compile('.*_test\.py$')
     is_test = lambda filename: test_file_pattern.match(filename)
     drop_dot_py = lambda filename: filename[:-3]
-    join_module = lambda *names: '.'.join(names)
+    join_module = lambda *names: '.'.join(names) if len(filter(None, names)) > 1 else names[-1]
     #return [drop_dot_py(module) for module in filter(is_test, os.listdir(os.curdir))]
+    check_filename = True if os.path.isfile(filename_arg) else False
     modules = []
     for root, dirs, files in os.walk(os.curdir):
-        root_name = os.path.split(root)[-1]
+        root_name = os.path.split(root)[-1].lstrip('.')
+        if check_filename:
+            files = filter(lambda x: x == filename_arg, files)
         for test_file in filter(is_test, files):
             modules.append(join_module(root_name, drop_dot_py(test_file)))
         #modules += ['.'.join([root_name, drop_dot_py(test_file)]) for test_file in filter(is_test, files)]
@@ -32,18 +36,35 @@ def find_all_test_files():
 def suite():
     sys.path.append(os.curdir)
 
-    modules_to_test = find_all_test_files()
-    print 'Testing', ', '.join(modules_to_test)
+    arg_len = len(sys.argv)
+    filename_arg = sys.argv[1]                    if arg_len >= 2  else '*'
+    testcase_arg, testmethod_arg = sys.argv[2:4]  if arg_len >= 4  else None, None
 
     loader = unittest.TestLoader()
+    if testcase_arg and testmethod_arg:
+        dotted_testcase_name = "%s.%s.%s" % (filename_arg, testcase_arg, testmethod_arg)
+        loaded_tests = [loader.loadTestsFromName(dotted_testcase_name)]
+    else:
+        modules_to_test = find_all_test_files(filename_arg)
+        print 'Testing', ', '.join(modules_to_test)
+        loaded_tests = loader.loadTestsFromNames(modules_to_test)
+
     alltests = unittest.TestSuite()
-    #for module in map(__import__, modules_to_test):
-    #    alltests.addTest(unittest.findTestCases(module))
-    alltests.addTests(loader.loadTestsFromNames(modules_to_test))
+    alltests.addTests(loaded_tests)
 
     return alltests
 
 if __name__ == '__main__':
+    if len(sys.argv) == 4:   # testfile testsuite.testcase
+        print sys.argv
+    elif len(sys.argv) == 2: # testfile
+        print sys.argv
+
+    test_suite = suite()
+    print test_suite.countTestCases()
+    test_suite.run(unittest.TestResult())
+    print unittest.TestResult()
     #unittest.main(defaultTest='suite')
-    testoob.main(defaultTest='suite')
+    #testoob.main(defaultTest='suite')
+
 

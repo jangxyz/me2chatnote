@@ -1,8 +1,10 @@
 #!/usr/bin/python
 import urllib
 from datetime import datetime
+import lib.simplejson as json
 
-ME2DAY_DATETIME_FORMAT="%Y-%m-%dT%X+0900"
+#ME2DAY_DATETIME_FORMAT="%Y-%m-%dT%X+0900"
+ME2DAY_DATETIME_FORMAT="%Y-%m-%dT%X"
 
 def time_iso8601(time):
     return time.strftime("%Y-%m-%dT%H:%M:%S")
@@ -55,7 +57,7 @@ class OpenStruct:
                     ]
                 # type conversion
                 if key == "pubDate":
-                    value = datetime.strptime(value, ME2DAY_DATETIME_FORMAT)
+                    value = datetime.strptime(value[:-5], ME2DAY_DATETIME_FORMAT)
                 d[key] = value
             return d
         else:
@@ -99,7 +101,8 @@ class Me2day:
             url += "?" + urllib.unquote(query)
         # fetch from me2day
         data = urllib.urlopen(url).read()
-        data = Json.parse(data)
+        #data = Json.parse(data)
+        data = json.loads(data)
         return OpenStruct.parse(data)
 
     @staticmethod

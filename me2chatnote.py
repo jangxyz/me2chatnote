@@ -1,44 +1,33 @@
 #!/usr/bin/python
+# -*- encoding: utf-8 -*-
+
+import sys
+if len(sys.argv) != 3:
+    sys.exit('Usage: %s ACCESS_TOKEN ACCESS_TOKEN_SECRET' % sys.argv[0])
+ACCESS_TOKEN = (sys.argv[1], sys.argv[2])
 
 from me2day import Me2day
 from springnote import Springnote
 
-def get_post_from_me2day(users, tags):
-    posts = []
-    for username in users:
-        posts += Me2day.posts(username, tags)
-    return posts
-
-def get_page_from_springnote(note, id):
-    springnote_client = Springnote(access_token=(TOKEN_KEY, TOKEN_SECRET))
-    return springnote_client.page(note, id)
-
-def get_time_of_last_bullet(page):
-    page.source
-    return 1
-
-def update_bullets(page, posts):
-    page.source += '<br/>'.join([post.body for post in posts])
-    page.save()
-
-def decorate_posts(posts):
-    posts
-
 if __name__ == '__main__':
 
-    page = Springnote(access_token=token).page('springmemo', 123)
-    last_time = get_time_of_last_bullet(page)
-    now = datetime.now()
-
+    # fetch from me2day
     users = ['jangxyz', 'loocaworld', 'agiletalk']
-    #posts = get_posts_from_me2day(users, 'woc')
-    recent_woc_posts = lambda u: Me2day.posts(u, tag='woc', since=last_time, to=now)
     posts = []
-    for username in users:
-        posts += recent_woc_posts(username)
+    [posts.extend( Me2day.posts(username, tag='woc') ) for username in users]
 
-    posts = decorate_posts(posts)
+    # decorate
+    posts.sort(lambda x, y: +1 if x.pubDate < y.pubDate else -1)
+    items = ["%s: %s (%s)" % (post.author.nickname, post.body, post.pubDate) for post in posts]
 
-    # merge
-    update_bullets(page, posts)
+    # save to springnote
+    page = Springnote(ACCESS_TOKEN).page('springmemo', 2996232)
+    page.source  = u"""<div>
+        이 페이지는 me2chatnote에 의해서 자동으로 생성된 페이지입니다. <br />
+        %s의 글들 중 'woc'라는 태그가 들어간 글을 수집했습니다.
+    </div>""" % ', '.join(users)
+    page.source += """<ul><li>%s</li></ul>""" % '</li><li>'.join(items)
+    page.tags = ["woc", "me2chatnote"]
+    page.save()
+    print "successfully posted %s items" % len(posts)
 

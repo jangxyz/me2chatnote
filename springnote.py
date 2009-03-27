@@ -2,14 +2,12 @@
 # -*- coding: utf-8 -*-
 
 import httplib, urllib
-import datetime, time
-import simplejson as json
-#import oauth
-from lib import oauth
+import lib.simplejson as json
+import lib.oauth as oauth
 
 # consumer token for this application
-CONSUMER_TOKEN  = 'toCVZKJ4WqUw16rnZa9VTA'
-CONSUMER_SECRET = 'KTZAzn4z5sCeqx7tgqagpgeQ4x4pBP9PP7tdZ23QU'
+CONSUMER_TOKEN  = 'CRX0pAbTqsacYKM5G9pA'
+CONSUMER_SECRET = 'y98eIzZopkjdKJqqDtZuNgmqknslPKoCDVNRqliP1AU'
 
 class SpringnoteResource:
     attributes = []
@@ -103,10 +101,6 @@ class Page(SpringnoteResource):
         path = "/pages/%d.json" % self.id
         method = "PUT"
 
-        #resource = {'page': self.resource}
-        #resource = {'page': self._writable_resources()}
-        #data = json.dumps(resource)
-
         self.request(path, method, data=self._writable_resources())
         return self
 
@@ -151,13 +145,6 @@ class Springnote:
 
     def fetch_request_token(self):
         """ Consumer의 자격으로 Service Provider로부터 request token을 받아온다 """
-        #
-        #oauth_request = oauth.OAuthRequest.from_consumer_and_token(self.consumer_token, http_url=self.REQUEST_TOKEN_URL)
-        #oauth_request.sign_request(self.signature_method, self.consumer_token, None)
-
-        #conn = httplib.HTTPSConnection("%s:%d" % ('api.springnote.com', 443))
-        #conn.request(oauth_request.http_method, self.REQUEST_TOKEN_URL, headers=oauth_request.to_header()) 
-        #
         conn = self.springnote_request('POST', self.REQUEST_TOKEN_URL)
 
         response = conn.getresponse()
@@ -177,12 +164,6 @@ class Springnote:
 
     def fetch_access_token(self, token):
         """ Consumer의 자격으로 Service Provider로부터 access token을 받아온다  """
-        #oauth_request = oauth.OAuthRequest.from_consumer_and_token(self.consumer_token, token=token, http_method = 'POST', http_url=self.ACCESS_TOKEN_URL)
-        #oauth_request.sign_request(self.signature_method, self.consumer_token, token)
-        #print oauth_request.parameters, token
-
-        #conn = httplib.HTTPSConnection("%s:%d" % ('api.springnote.com', 443))
-        #conn.request(oauth_request.http_method, self.ACCESS_TOKEN_URL, headers=oauth_request.to_header()) 
         conn = self.springnote_request('POST', self.ACCESS_TOKEN_URL, sign_token=token)
 
         response = conn.getresponse()
@@ -240,45 +221,5 @@ class SpringnoteError:
             return SpringnoteError.NotFound(errors)
         else:
             return SpringnoteError.Base(errors)
-
-
-if __name__ == '__main__':
-    springnote_client = Springnote({
-        'consumer_token': CONSUMER_TOKEN , 
-        'consumer_token_secret': CONSUMER_SECRET
-    })
-    
-    #-----------------------------------------------------
-    #token = springnote_client.fetch_request_token()
-    #print 'GOT'
-    #print 'key: %s' % str(token.key)
-    #print 'secret: %s' % str(token.secret)
-    #raw_input(springnote_client.authorize_url(token))
-    #token = springnote_client.fetch_access_token(token)
-    #print 'GOT'
-    #print 'key: %s' % str(token.key)
-    #print 'secret: %s' % str(token.secret)
-    springnote_client.set_access_token(token='2TFvF1V6mFXd0kv8RFEoA', key='a7W9q8tVGaZhgvrsouqdwtH6aw07sGYc4XCy0YHtkM')
-    #-----------------------------------------------------
-
-
-    #page = springnote_client.get_page(2044710, {'domain':'jangxyz'})
-    page = springnote_client.page('jangxyz', 563954)
-    page = springnote_client.page('jangxyz', 2423440)
-    print page.resource
-    print page.source
-    # as a consumer, access some protected resources from service provider
-    #print springnote_client.fetch_notes()
-
-    # test page
-    #title = "test title - %d" % int(time.time())
-    #created_page = notes[0].create_page(title=title, source='this is a test')
-    #source = created_page.source
-    #created_page.source = "different source"
-    #created_page.save()
-    #print "\'%s\' and \'%s\' are the same" % (source, created_page.source)
-    #fetched_page = springnote_client.get_page(created_page.id)
-    #print "\'%s\' and \'%s\' are the same" % (created_page.title, fetched_page.title)
-    #deleted_page = springnote_client.delete_page(created_page.id)
 
 

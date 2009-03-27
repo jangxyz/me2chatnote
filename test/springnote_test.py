@@ -2,6 +2,7 @@
 # coding: utf-8
 
 import test_env
+import sys; print sys.path
 
 import unittest
 from lib.mock import Mock

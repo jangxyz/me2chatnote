@@ -160,6 +160,8 @@ class ParseJsonTestCase(unittest.TestCase):
         assert isinstance(post.pubDate, me2day.datetime)
         assert post.pubDate.timetuple()[:6] == (2009, 2, 27, 0, 0, 32)
 
+    def test_pubDate_should_parse_any_timezone(self):
+        assert_(False)
 
 class Me2dayApiAcceptanceTestCase(unittest.TestCase):
     def test_get_recent_posts_by_username(self):

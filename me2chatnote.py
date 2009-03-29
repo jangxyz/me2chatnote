@@ -15,16 +15,16 @@ Press enter when ready...""" % springnote.authorize_url(token))
     return token.key, token.secret
 
 
-if len(sys.argv) != 3:
+if len(sys.argv) == 3:
+    ACCESS_TOKEN = (sys.argv[1], sys.argv[2])
+elif len(sys.argv) == 2:
+    ACCESS_TOKEN = tuple(open(sys.argv[1]).read().split())
+else:
     print """You can access right away like the following:
-    Usage: %s ACCESS_TOKEN ACCESS_TOKEN_SECRET
-    """ % sys.argv[0]
+    Usage: %s ACCESS_TOKEN ACCESS_TOKEN_SECRET\n""" % sys.argv[0]
     ACCESS_TOKEN = fetch_access_token()
     print """Next time, try:
-    Usage: %s %s %s
-    """ % (sys.argv[0], ACCESS_TOKEN[0], ACCESS_TOKEN[1])
-else:
-    ACCESS_TOKEN = (sys.argv[1], sys.argv[2])
+    Usage: %s %s %s\n""" % (sys.argv[0], ACCESS_TOKEN[0], ACCESS_TOKEN[1])
 
 
 if __name__ == '__main__':

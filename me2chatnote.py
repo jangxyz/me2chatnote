@@ -2,12 +2,30 @@
 # -*- encoding: utf-8 -*-
 
 import sys
-if len(sys.argv) != 3:
-    sys.exit('Usage: %s ACCESS_TOKEN ACCESS_TOKEN_SECRET' % sys.argv[0])
-ACCESS_TOKEN = (sys.argv[1], sys.argv[2])
-
 from me2day import Me2day
 from springnote import Springnote
+
+
+def fetch_access_token():
+    springnote = Springnote()
+    token = springnote.fetch_request_token()
+    raw_input("""visit the following URL and authorize: %s 
+Press enter when ready...""" % springnote.authorize_url(token))
+    token = springnote.fetch_access_token(token)
+    return token.key, token.secret
+
+
+if len(sys.argv) != 3:
+    print """You can access right away like the following:
+    Usage: %s ACCESS_TOKEN ACCESS_TOKEN_SECRET
+    """ % sys.argv[0]
+    ACCESS_TOKEN = fetch_access_token()
+    print """Next time, try:
+    Usage: %s %s %s
+    """ % (sys.argv[0], ACCESS_TOKEN[0], ACCESS_TOKEN[1])
+else:
+    ACCESS_TOKEN = (sys.argv[1], sys.argv[2])
+
 
 if __name__ == '__main__':
 

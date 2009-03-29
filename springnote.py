@@ -222,4 +222,3 @@ class SpringnoteError:
         else:
             return SpringnoteError.Base(errors)
 
-

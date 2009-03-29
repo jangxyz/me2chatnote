@@ -41,7 +41,7 @@ if __name__ == '__main__':
     # save to springnote
     page = Springnote(ACCESS_TOKEN).page('springmemo', 2996232)
     page.source  = u"""<div>
-        이 페이지는 me2chatnote에 의해서 자동으로 생성된 페이지입니다. <br />
+        이 페이지는 <a href='http://wiki.github.com/jangxyz/me2chatnote'>me2chatnote</a>에 의해서 자동으로 생성된 페이지입니다. <br />
         %s의 글들 중 'woc'라는 태그가 들어간 글을 수집했습니다.
     </div>""" % ', '.join(users)
     page.source += """<ul><li>%s</li></ul>""" % '</li><li>'.join(items)

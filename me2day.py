@@ -1,6 +1,8 @@
 #!/usr/bin/python
-import urllib
+import urllib, sys, os
 from datetime import datetime
+
+sys.path.append( os.path.abspath('lib') )
 import lib.simplejson as json
 
 #ME2DAY_DATETIME_FORMAT="%Y-%m-%dT%X+0900"
